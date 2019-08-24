@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2011-2017 OpenFOAM Foundation
+#   \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -54,13 +54,15 @@ MPI_MAX_PROCS=32
 # note: script will try to determine the appropriate python library.
 #       If it fails, specify the path using the PYTHON_LIBRARY variable
 withPYTHON=false
+PYTHON_BIN=""
 PYTHON_LIBRARY=""
 PYTHON_INCLUDE=""
 # Examples
+# PYTHON_BIN="/usr/bin/python"
 # PYTHON_LIBRARY="/usr/lib64/libpython2.7.so.1.0"
 # PYTHON_INCLUDE="/usr/include/python2.7"
 
-# MESA graphics support:
+# Off-Screen MESA graphics support:
 withMESA=false
 MESA_INCLUDE="/usr/include/GL"
 MESA_LIBRARY="/usr/lib64/libOSMesa.so"
@@ -93,7 +95,8 @@ options:
   -rebuild          for repeated builds (-make -install) *use with caution*
   -rendering MODE   rendering backend engine (current value: ${RENDERING_BACKEND:-undefined})
                         modes: OpenGL OpenGL2
-  -mesa             with mesa (if not already enabled)
+                        warning: only works for versions 5.4.1 and older
+  -mesa             with off-screen mesa (if not already enabled)
   -mpi              with mpi (if not already enabled)
   -python           with python (if not already enabled)
   -cmake PATH       with the cmake version corresponding to the cmake path given
@@ -106,8 +109,9 @@ options:
   -version VER      specify an alternative version (current value: $ParaView_VERSION)
   -major   VER      specify an alternative major version for special builds
   -mesa-include DIR
-                    location of mesa headers (current value: ${MESA_INCLUDE:-none})
-  -mesa-lib PATH    path to mesa library     (current value: ${MESA_LIBRARY:-none})
+                    location of off-screen mesa headers (current value: ${MESA_INCLUDE:-none})
+  -mesa-lib PATH    path to off-screen mesa library     (current value: ${MESA_LIBRARY:-none})
+  -python-bin PATH  path to python executable (current value: ${PYTHON_BIN:-automatic})
   -python-lib PATH  path to python library   (current value: ${PYTHON_LIBRARY:-automatic})
   -python-include DIR
                     path to python include directory (current value: ${PYTHON_INCLUDE:-automatic})
@@ -165,6 +169,18 @@ do
     case "$1" in
     -h | -help)
         usage
+        ;;
+    # Parallel compilation on all cores of local machine
+    -j)
+        export WM_NCOMPPROCS=$WM_MAX_NCOMPPROCS
+        [ $# -ge 2 ] && [ "$2" -gt 0 ] > /dev/null 2>&1 \
+            && shift && export WM_NCOMPPROCS=$1
+        echo "Compiling enabled on $WM_NCOMPPROCS cores"
+        ;;
+    # Parallel compilation on specified number of cores
+    -j*)
+        export WM_NCOMPPROCS=${1#-j}
+        echo "Compiling enabled on $WM_NCOMPPROCS cores"
         ;;
     [A-Z]*=*)            # cmake variables
         addCMakeVariable "$1"
@@ -245,6 +261,11 @@ do
     -no-python)
         withPYTHON=false
         shift
+        ;;
+    -python-bin)
+        [ "$#" -ge 2 ] || usage "'$1' option requires an argument"
+        PYTHON_BIN="$2"
+        shift 2
         ;;
     -python-lib)
         [ "$#" -ge 2 ] || usage "'$1' option requires an argument"

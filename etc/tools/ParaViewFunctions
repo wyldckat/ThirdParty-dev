@@ -2,7 +2,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2011-2017 OpenFOAM Foundation
+#   \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -219,7 +219,12 @@ addPythonSupport()
 
     OBJ_ADD="$OBJ_ADD-py"
 
-    if pythonBin=$(which python 2>/dev/null)
+    if [ -z "$PYTHON_BIN" ]
+    then
+        PYTHON_BIN=$(which python 2>/dev/null)
+    fi
+
+    if [ -x "$PYTHON_BIN" ]
     then
         if [ -n "$PYTHON_LIBRARY" ]
         then
@@ -231,7 +236,7 @@ addPythonSupport()
             fi
         else
             # Try to get $PYTHON_LIBRARY from dynamically linked binary
-            PYTHON_LIBRARY=$(ldd $pythonBin | \
+            PYTHON_LIBRARY=$(ldd $PYTHON_BIN | \
                 sed -ne '/libpython/s/.* => \(.*\) (.*/\1/p')
 
            [ -e "$PYTHON_LIBRARY" ] || {
@@ -263,6 +268,7 @@ addPythonSupport()
 
         addCMakeVariable  "PARAVIEW_ENABLE_PYTHON=ON"
         addCMakeVariable  "PYTHON_INCLUDE_PATH=$PYTHON_INCLUDE"
+        addCMakeVariable  "PYTHON_EXECUTABLE=$PYTHON_BIN"
         addCMakeVariable  "PYTHON_LIBRARY=$PYTHON_LIBRARY"
 
         echo "----"
@@ -272,7 +278,7 @@ addPythonSupport()
         echo "    include path   : $PYTHON_INCLUDE"
         echo "    library        : $PYTHON_LIBRARY"
 
-        unset pythonBin pythonMajor
+        unset pythonMajor
     else
         echo "*** Error: python not found"
         echo "***        Deactivate python support by not using the -python "
@@ -283,7 +289,7 @@ addPythonSupport()
 
 
 #
-# Define options for mesa support
+# Define options for off-screen mesa support
 #
 addMesaSupport()
 {
@@ -301,9 +307,9 @@ addMesaSupport()
         addCMakeVariable  "OSMESA_LIBRARY=$MESA_LIBRARY"
 
     else
-       echo "*** Error: no MESA information found"
-       echo "***        Deactivate MESA support by not using the -mesa option, "
-       echo "***        or set the correct paths for:"
+       echo "*** Error: no Off-Screen MESA information found"
+       echo "***        Deactivate this MESA support by not using the -mesa "
+       echo "***        option, or set the correct paths for:"
        echo "***        -mesa-include ($MESA_INCLUDE)"
        echo "***        -mesa-lib ($MESA_LIBRARY)"
        exit 1

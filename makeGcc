@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2011-2018 OpenFOAM Foundation
+#   \\  /    A nd           | Copyright (C) 2011-2019 OpenFOAM Foundation
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -79,6 +79,18 @@ do
     case "$1" in
     -h | -help)
         usage
+        ;;
+    # Parallel compilation on all cores of local machine
+    -j)
+        export WM_NCOMPPROCS=$WM_MAX_NCOMPPROCS
+        [ $# -ge 2 ] && [ "$2" -gt 0 ] > /dev/null 2>&1 \
+            && shift && export WM_NCOMPPROCS=$1
+        echo "Compiling enabled on $WM_NCOMPPROCS cores"
+        ;;
+    # Parallel compilation on specified number of cores
+    -j*)
+        export WM_NCOMPPROCS=${1#-j}
+        echo "Compiling enabled on $WM_NCOMPPROCS cores"
         ;;
     -no-multilib)
         GCC_BUILD_OPTIONS="--disable-multilib"
