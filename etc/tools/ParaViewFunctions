@@ -273,7 +273,7 @@ addPythonSupport()
 
         echo "----"
         echo "Python information:"
-        echo "    executable     : $pythonBin"
+        echo "    executable     : $PYTHON_BIN"
         echo "    version        : $pythonMajor"
         echo "    include path   : $PYTHON_INCLUDE"
         echo "    library        : $PYTHON_LIBRARY"

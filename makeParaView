@@ -115,6 +115,8 @@ options:
   -python-lib PATH  path to python library   (current value: ${PYTHON_LIBRARY:-automatic})
   -python-include DIR
                     path to python include directory (current value: ${PYTHON_INCLUDE:-automatic})
+  -j                Compile using all local cores/hyperthreads
+  -j <N> | -j<N>    Compile using N cores/hyperthreads
   -help
 
 The -no-FEATURE option can be disable these features (if not already disabled):
@@ -175,11 +177,13 @@ do
         export WM_NCOMPPROCS=$WM_MAX_NCOMPPROCS
         [ $# -ge 2 ] && [ "$2" -gt 0 ] > /dev/null 2>&1 \
             && shift && export WM_NCOMPPROCS=$1
+        shift
         echo "Compiling enabled on $WM_NCOMPPROCS cores"
         ;;
     # Parallel compilation on specified number of cores
     -j*)
         export WM_NCOMPPROCS=${1#-j}
+        shift
         echo "Compiling enabled on $WM_NCOMPPROCS cores"
         ;;
     [A-Z]*=*)            # cmake variables
